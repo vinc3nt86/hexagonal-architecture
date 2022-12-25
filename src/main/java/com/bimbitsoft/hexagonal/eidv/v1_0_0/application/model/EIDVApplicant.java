@@ -1,4 +1,4 @@
-package com.bimbitsoft.hexagonal.eidv.v1_0_0.application.domain;
+package com.bimbitsoft.hexagonal.eidv.v1_0_0.application.model;
 
 import lombok.Data;
 
@@ -18,10 +18,8 @@ public class EIDVApplicant {
     private String iwfCaseId;
 
     public enum EIDVStatus {
-        APPLICANT_CREATED,
-        ID_DOCUMENT_UPDATED,
-        ID_DOCUMENT_UPLOADED,
-        ID_DOCUMENT_DOWNLOADED,
-        SDK_TOKEN_GENERATED
+        APPLICANT_CREATED, SDK_TOKEN_GENERATED,
+        ID_DOCUMENT_ID_UPDATED, ID_DOCUMENT_UPLOADED, ID_DOCUMENT_DOWNLOADED,
+        LIVE_VIDEO_UPLOADED, LIVE_VIDEO_FRAME_DOWNLOADED, LIVE_VIDEO_ID_UPDATED
     }
 }

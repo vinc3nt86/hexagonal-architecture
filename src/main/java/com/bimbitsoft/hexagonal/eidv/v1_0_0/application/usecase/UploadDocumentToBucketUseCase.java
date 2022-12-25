@@ -1,6 +1,6 @@
 package com.bimbitsoft.hexagonal.eidv.v1_0_0.application.usecase;
 
-import com.bimbitsoft.hexagonal.eidv.v1_0_0.application.domain.EIDVDocument;
+import com.bimbitsoft.hexagonal.eidv.v1_0_0.application.model.EIDVDocument;
 import com.bimbitsoft.hexagonal.eidv.v1_0_0.application.port.out.UploadedDocumentRepositoryPort;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 class UploadDocumentToBucketUseCase implements UseCase<String, UploadDocumentToBucketUseCase.Dto> {
     private UploadedDocumentRepositoryPort uploadedDocumentRepositoryPort;
+
 
     @Override
     public String execute(UploadDocumentToBucketUseCase.Dto dto) {

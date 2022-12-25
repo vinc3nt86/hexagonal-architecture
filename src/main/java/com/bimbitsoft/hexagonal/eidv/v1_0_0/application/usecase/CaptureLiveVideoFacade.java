@@ -11,18 +11,30 @@ import org.springframework.stereotype.Component;
 @Component
 @AllArgsConstructor
 @Slf4j
-public class CaptureIdDocumentFacade extends UseCaseExtension<EIDVApplicant, CaptureIdDocumentFacade.Dto> {
+public class CaptureLiveVideoFacade extends UseCaseExtension<EIDVApplicant, CaptureLiveVideoFacade.Dto> {
     private UpdateApplicantDocumentIdUseCase updateApplicantDocumentIdUseCase;
     private DownloadDocumentBinaryDataUseCase downloadDocumentBinaryDataUseCase;
     private UploadDocumentToBucketUseCase uploadDocumentToBucketUseCase;
 
     @Override
-    public EIDVApplicant execute(Dto dto) {
+    public EIDVApplicant execute(CaptureLiveVideoFacade.Dto dto) {
         log.info("Executing {} use-case", this.getClass().getName());
 
         EIDVApplicant eidvApplicant = updateApplicantDocumentIdInDB(dto);
-        String base64Image = downloadDocumentBinaryData(eidvApplicant.getApplicantId(), dto.getDocumentId());
+        String base64Image = downloadDocumentBinaryData(eidvApplicant.getApplicantId(), dto.getLiveVideoId());
         uploadDocumentToBucket(eidvApplicant.getApplicantId(), dto.getChannelApplicationId(), base64Image);
+
+        return null;
+    }
+
+    private EIDVApplicant updateApplicantDocumentIdInDB(CaptureLiveVideoFacade.Dto dto) {
+        EIDVApplicant eidvApplicant = updateApplicantDocumentIdUseCase.execute(UpdateApplicantDocumentIdUseCase.Dto.builder()
+                .channelApplicationId(dto.getChannelApplicationId())
+                .documentId(dto.getLiveVideoId())
+                .documentType(EIDVDocument.DocumentType.ID_DOCUMENT)
+                .build());
+
+        updateApplicantStatus(eidvApplicant.getApplicantId(), EIDVApplicant.EIDVStatus.LIVE_VIDEO_ID_UPDATED);
 
         return eidvApplicant;
     }
@@ -32,36 +44,24 @@ public class CaptureIdDocumentFacade extends UseCaseExtension<EIDVApplicant, Cap
                 .applicantId(applicantId)
                 .base64String(base64Image)
                 .channelApplicationId(channelApplicationId)
-                .documentType(EIDVDocument.DocumentType.ID_DOCUMENT)
+                .documentType(EIDVDocument.DocumentType.LIVE_VIDEO)
                 .build());
 
-        updateApplicantStatus(applicantId, EIDVApplicant.EIDVStatus.ID_DOCUMENT_UPLOADED);
+        updateApplicantStatus(applicantId, EIDVApplicant.EIDVStatus.LIVE_VIDEO_UPLOADED);
     }
 
     private String downloadDocumentBinaryData(String applicantId, String documentId) {
         String base64String = downloadDocumentBinaryDataUseCase.execute(new DownloadDocumentBinaryDataUseCase.Dto(documentId));
 
-        updateApplicantStatus(applicantId, EIDVApplicant.EIDVStatus.ID_DOCUMENT_DOWNLOADED);
+        updateApplicantStatus(applicantId, EIDVApplicant.EIDVStatus.LIVE_VIDEO_FRAME_DOWNLOADED);
 
         return base64String;
-    }
-
-    private EIDVApplicant updateApplicantDocumentIdInDB(Dto dto) {
-        EIDVApplicant eidvApplicant = updateApplicantDocumentIdUseCase.execute(UpdateApplicantDocumentIdUseCase.Dto.builder()
-                .channelApplicationId(dto.getChannelApplicationId())
-                .documentId(dto.getDocumentId())
-                .documentType(EIDVDocument.DocumentType.ID_DOCUMENT)
-                .build());
-
-        updateApplicantStatus(eidvApplicant.getApplicantId(), EIDVApplicant.EIDVStatus.ID_DOCUMENT_ID_UPDATED);
-
-        return eidvApplicant;
     }
 
     @Getter
     @Builder
     public static class Dto {
         private final String channelApplicationId;
-        private final String documentId;
+        private final String liveVideoId;
     }
 }

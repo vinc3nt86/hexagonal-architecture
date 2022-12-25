@@ -1,4 +1,4 @@
-package com.bimbitsoft.hexagonal.eidv.v1_0_0.application.domain;
+package com.bimbitsoft.hexagonal.eidv.v1_0_0.application.model;
 
 import lombok.Data;
 

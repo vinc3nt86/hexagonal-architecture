@@ -1,7 +1,7 @@
 package com.bimbitsoft.hexagonal.eidv.v1_0_0.application.usecase;
 
-import com.bimbitsoft.hexagonal.eidv.v1_0_0.application.domain.CustomerDetail;
-import com.bimbitsoft.hexagonal.eidv.v1_0_0.application.domain.EIDVApplicant;
+import com.bimbitsoft.hexagonal.eidv.v1_0_0.application.model.CustomerDetail;
+import com.bimbitsoft.hexagonal.eidv.v1_0_0.application.model.EIDVApplicant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 @AllArgsConstructor
 @Slf4j
-public class InitializeSDKFacade implements UseCase<EIDVApplicant, InitializeSDKFacade.Dto> {
+public class InitializeSDKFacade extends UseCaseExtension<EIDVApplicant, InitializeSDKFacade.Dto> {
     private final CreateNewApplicantUseCase createNewApplicantUseCase;
     private final GenerateSDKTokenUseCase generateSDKTokenUseCase;
     private final GetCustomerDetailFromDBUseCase getCustomerDetailFromDBUseCase;
@@ -31,7 +31,9 @@ public class InitializeSDKFacade implements UseCase<EIDVApplicant, InitializeSDK
 
         updateApplicantStatus(applicantId, EIDVApplicant.EIDVStatus.APPLICANT_CREATED);
 
-        String sdkToken = generateSDKTokenUseCase.execute(GenerateSDKTokenDto.builder().applicantId(applicantId).build());
+        String sdkToken = generateSDKTokenUseCase.execute(GenerateSDKTokenUseCase.Dto.builder()
+                .applicantId(applicantId)
+                .build());
 
         updateApplicantStatus(applicantId, EIDVApplicant.EIDVStatus.SDK_TOKEN_GENERATED);
 
@@ -41,13 +43,6 @@ public class InitializeSDKFacade implements UseCase<EIDVApplicant, InitializeSDK
         eidvApplicant.setChannelApplicationId(dto.getChannelApplicationId());
 
         return eidvApplicant;
-    }
-
-    private String updateApplicantStatus(String applicantId, EIDVApplicant.EIDVStatus status) {
-        return updateEIDVStatusUseCase.execute(UpdateEIDVStatusUseCase.Dto.builder()
-                .applicantId(applicantId)
-                .status(status)
-                .build());
     }
 
     @Getter

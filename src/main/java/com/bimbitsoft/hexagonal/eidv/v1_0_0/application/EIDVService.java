@@ -1,6 +1,6 @@
 package com.bimbitsoft.hexagonal.eidv.v1_0_0.application;
 
-import com.bimbitsoft.hexagonal.eidv.v1_0_0.application.domain.EIDVApplicant;
+import com.bimbitsoft.hexagonal.eidv.v1_0_0.application.model.EIDVApplicant;
 import com.bimbitsoft.hexagonal.eidv.v1_0_0.application.port.in.EIDVServicePort;
 import com.bimbitsoft.hexagonal.eidv.v1_0_0.application.usecase.InitializeSDKFacade;
 import lombok.AllArgsConstructor;

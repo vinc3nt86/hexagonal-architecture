@@ -1,7 +1,5 @@
 package com.bimbitsoft.hexagonal.eidv.v1_0_0.application.port.out;
 
-import com.bimbitsoft.hexagonal.eidv.v1_0_0.application.domain.EIDVApplicant;
-
 import java.util.Optional;
 
 public interface EIDVApplicantRepositoryPort {

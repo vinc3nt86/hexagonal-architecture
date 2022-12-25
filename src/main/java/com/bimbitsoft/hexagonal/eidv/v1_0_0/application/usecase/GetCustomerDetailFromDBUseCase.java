@@ -1,6 +1,6 @@
 package com.bimbitsoft.hexagonal.eidv.v1_0_0.application.usecase;
 
-import com.bimbitsoft.hexagonal.eidv.v1_0_0.application.domain.CustomerDetail;
+import com.bimbitsoft.hexagonal.eidv.v1_0_0.application.model.CustomerDetail;
 import com.bimbitsoft.hexagonal.eidv.v1_0_0.application.exception.EIDVCoreException;
 import com.bimbitsoft.hexagonal.eidv.v1_0_0.application.port.out.CustomerDetailRepositoryPort;
 import lombok.AllArgsConstructor;

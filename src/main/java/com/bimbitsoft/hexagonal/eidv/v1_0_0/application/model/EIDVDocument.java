@@ -1,4 +1,4 @@
-package com.bimbitsoft.hexagonal.eidv.v1_0_0.application.domain;
+package com.bimbitsoft.hexagonal.eidv.v1_0_0.application.model;
 
 import lombok.Data;
 
@@ -6,6 +6,6 @@ import lombok.Data;
 public class EIDVDocument {
     public enum DocumentType {
         ID_DOCUMENT,
-        SELFIE_VIDEO_FRAME
+        LIVE_VIDEO
     }
 }

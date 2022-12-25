@@ -1,6 +1,6 @@
 package com.bimbitsoft.hexagonal.eidv.v1_0_0.application.usecase;
 
-import com.bimbitsoft.hexagonal.eidv.v1_0_0.application.domain.EIDVApplicant;
+import com.bimbitsoft.hexagonal.eidv.v1_0_0.application.model.EIDVApplicant;
 import com.bimbitsoft.hexagonal.eidv.v1_0_0.application.port.out.EIDVApplicantRepositoryPort;
 import com.bimbitsoft.hexagonal.eidv.v1_0_0.application.port.out.EIDVAuditRepository;
 import lombok.AllArgsConstructor;
