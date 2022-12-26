@@ -1,0 +1,185 @@
+@@startuml
+title EIDV Class Diagram
+left to right direction
+' top to bottom direction
+
+package "Driving Adapter" as Driving {
+    annotation @RestController
+    class EIDVController {
+        Result<Object> createApplicant()
+        Result<Object> updateApplicant()
+    }
+    class EIDVHandler {
+        -EIDVServicePort eidvServicePort
+        +Result<Object> createApplicant()
+        +Result<Object> updateApplicant()
+    }
+
+    class EIDVMapper {
+        #EIDVInfo mapToDomain()
+        #Response mapFromDomain()
+    }
+}
+
+rectangle "Application" {
+    interface EIDVServicePort
+    class EIDVService {
+        +EIDVInfo createApplicant()
+        +EIDVInfo updateApplicant()
+    }
+
+    EIDVServicePort <|.. EIDVService
+
+    interface ApplicationServicePort
+    class CasaApplicationService {
+        +CASAApplication createApplicant()
+        +CASAApplication updateApplicant()
+        +CASAApplication retrieveApplication()
+        +CASAApplication retrieveProducts()
+    }
+
+    ApplicationServicePort <|.. CasaApplicationService
+
+    package StateMachine {
+        package Guard {}
+        package Action {}
+        package Configuration{}
+    }
+
+    package "eidv" <<domain>> as eidv {
+        top to bottom direction
+
+        package "use-case" as eidv_usecase_pkg {
+            ' classes
+            class EIDVUseCasesFacade 
+            
+            together {
+                class CreateApplicantUseCase <<protected>>
+                class CreateApplicantDto <<protected>>
+                class UpdateDocumentUseCase <<protected>>
+                class UpdateDocumentDto <<protected>>
+                class UpdateSelfieVideoUseCase <<protected>>
+                class UpdateSelfieVideoDto <<protected>>
+                class GenerateSDKTokenUseCase <<protected>>
+                class GenerateSDKTokenDto <<protected>>
+                class DeleteApplicantUseCase <<protected>>
+                class DeleteApplicantDto <<protected>>
+                class CreateCheckResultUseCase <<protected>>
+                class CreateCheckResultDto <<protected>>
+                class FallBackUseCase <<protected>>
+                class FallBackDto <<protected>>
+            }
+
+            ' internal layout arrangement
+            ' EIDVUseCasesFacade <|-[hidden] CreateApplicantUseCase
+            ' CreateApplicantUseCase <|--[hidden] UpdateDocumentUseCase
+            ' UpdateDocumentUseCase <|--[hidden] UpdateSelfieVideoUseCase
+            ' UpdateSelfieVideoUseCase <|--[hidden] GenerateSDKTokenUseCase
+            ' GenerateSDKTokenUseCase <|--[hidden] DeleteApplicantUseCase
+            ' DeleteApplicantUseCase <|--[hidden] CreateCheckResultUseCase
+            ' CreateCheckResultUseCase <|--[hidden] FallBackUseCase
+
+            EIDVUseCasesFacade <|--[hidden] CreateApplicantDto
+            CreateApplicantDto <|-[hidden] CreateApplicantUseCase
+            UpdateDocumentDto <|-[hidden] UpdateDocumentUseCase
+            UpdateSelfieVideoDto <|-[hidden] UpdateSelfieVideoUseCase
+            GenerateSDKTokenDto <|-[hidden] GenerateSDKTokenUseCase
+            DeleteApplicantDto <|-[hidden] DeleteApplicantUseCase
+            CreateCheckResultDto <|-[hidden] CreateCheckResultUseCase
+            FallBackDto <|-[hidden] FallBackUseCase
+
+            EIDVUseCasesFacade <|-[hidden] CreateApplicantUseCase
+            CreateApplicantUseCase <|--[hidden] UpdateDocumentUseCase
+            UpdateDocumentUseCase <|--[hidden] UpdateSelfieVideoUseCase
+            UpdateSelfieVideoUseCase <|--[hidden] GenerateSDKTokenUseCase
+            GenerateSDKTokenUseCase <|--[hidden] DeleteApplicantUseCase
+            DeleteApplicantUseCase <|--[hidden] CreateCheckResultUseCase
+            CreateCheckResultUseCase <|--[hidden] FallBackUseCase
+
+            EIDVUseCasesFacade <|... CreateApplicantUseCase
+            EIDVUseCasesFacade <|... UpdateDocumentUseCase
+            EIDVUseCasesFacade <|... UpdateSelfieVideoUseCase
+            EIDVUseCasesFacade <|... GenerateSDKTokenUseCase
+            EIDVUseCasesFacade <|... DeleteApplicantUseCase
+            EIDVUseCasesFacade <|... CreateCheckResultUseCase
+            EIDVUseCasesFacade <|... FallBackUseCase
+        }
+
+        
+        together {
+            package "model" as eidv_domain_pkg {
+                class EIDVApplicant
+                class EIDVId
+            }
+
+            package "validation" as eidv_validator_pkg {
+                class EIDVValidatorFacade
+                class ValidateApplicantIdInput
+            }
+
+            package "exception" as eidv_error_pkg {
+                enum EIDVServerError {
+                    CONNECTION_TIMEOUT
+                    SERVER_ERROR
+                }
+
+                enum EIDVBusinessError {
+                    APPLICANT_ID_NOT_FOUND
+                    
+                }
+            }
+
+            package port as eidv_port {
+                package in {
+                    interface usecase
+                }
+                package out {
+                    interface EIDVManagerPort
+                    interface EIDVApplicantRepositoryPort
+                    interface EIDVAuditRepository
+
+                    EIDVManagerPort <|--[hidden] EIDVApplicantRepositoryPort
+                    EIDVApplicantRepositoryPort <|--[hidden] EIDVAuditRepository
+                }
+
+            }
+
+            eidv_domain_pkg -[hidden]-|> eidv_validator_pkg
+            eidv_validator_pkg -[hidden]-|> eidv_error_pkg
+        }
+        
+
+        package "statemachine" as eidv_statemachine_pkg {
+            package "guard" {}
+            package "action" {}
+        }
+
+        ' layout
+
+        hide eidv_statemachine_pkg
+    }
+}
+
+package "Driven Adapter" as Driven {
+    interface OnfidoClientPort
+    class OnfidoClient {
+        +EIDVInfo createApplicant()
+        +EIDVInfo updateApplicant()
+        +EIDVInfo deleteApplicant()
+        +EIDVInfo generateSDKToken()
+        +EIDVInfo checkResult()
+        +EIDVInfo getResultStatus()
+        +EIDVInfo getResultReport()
+    }
+}
+
+' layout
+Driving -[hidden]--|> eidv
+eidv -[hidden]--|> Driven
+
+' Relationship
+' EIDVServicePort <|.. EIDVService
+
+
+
+@@enduml

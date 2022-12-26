@@ -1,0 +1,42 @@
+@startuml
+title Onboarding Service Component Diagram
+
+skinparam rectangle<<boundary>> {
+    BorderStyle dashed
+}
+
+rectangle "Driving Adapters\n" <<boundary>> {
+    [EIDV Controller] as EIDV_Controller
+    [EIDV Handler] as EIDV_Handler
+
+    [CASA Controller] as CASA_Controller
+    [CASA Handler] as CASA_Handler
+}
+
+rectangle <<boundary>> "Application\n" <<application>> {
+    interface "eidv" as eidv_driving_port
+    interface "casa" as casa_application_service_port
+    component EIDV as EIDV <<core>>
+    component CASA as CASA <<core>>
+    component Prospect <<core>>
+    
+
+    ' component casa {
+    '     portin casa_application_service_port as casa_driving_port
+    '     component CASA as CASA <<core>>
+    ' }
+
+    ' component nri {
+    '     portin nri_application_service_port as nri_driving_port
+
+    '     component NRI <<core>>
+    ' }
+}
+
+EIDV_Controller --> EIDV_Handler
+EIDV_Handler -right-> eidv_driving_port
+eidv_driving_port -right-> EIDV
+
+CASA_Controller --> CASA_Handler
+CASA_Handler -right-> casa_application_service_port
+@enduml
