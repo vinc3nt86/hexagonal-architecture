@@ -1,7 +1,7 @@
 package com.bimbitsoft.hexagonal.eidv.v1_0_0.application.usecase;
 
-import com.bimbitsoft.hexagonal.eidv.v1_0_0.application.model.CustomerDetail;
 import com.bimbitsoft.hexagonal.eidv.v1_0_0.application.exception.EIDVCoreException;
+import com.bimbitsoft.hexagonal.eidv.v1_0_0.application.model.CustomerDetail;
 import com.bimbitsoft.hexagonal.eidv.v1_0_0.application.port.out.CustomerDetailRepositoryPort;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +18,7 @@ class GetCustomerDetailFromDBUseCase implements UseCase<CustomerDetail, String> 
         return customerDetailRepositoryPort.findCustomerDetailsByApplicationId(applicationId)
                 .orElseThrow(() -> {
                     log.error("Customer details is not found for prospect with prospect id {}", applicationId);
-                    throw new EIDVCoreException(EIDVCoreException.ExceptionCode.SERVER_ERROR);
+                    throw new EIDVCoreException(EIDVCoreException.ExceptionCode.ENTITY_NOT_FOUND);
                 });
     }
 }

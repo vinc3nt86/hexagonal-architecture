@@ -24,8 +24,10 @@ public class EIDVCoreException extends RuntimeException {
     }
 
     public enum ExceptionCode {
-        LIVE_VIDEO_FRAME_EXTRACTION_FAILED("Failed to extract live video frame", "", HttpStatus.EXPECTATION_FAILED),
-        LIVE_VIDEO_FRAME_EXTRACTION_UNAVAILABLE("", "", HttpStatus.INTERNAL_SERVER_ERROR);
+        LIVE_VIDEO_FRAME_EXTRACTION_FAILED("", "Failed to extract live video frame", HttpStatus.EXPECTATION_FAILED),
+        LIVE_VIDEO_FRAME_EXTRACTION_UNAVAILABLE("", "", HttpStatus.INTERNAL_SERVER_ERROR),
+        APPLICANT_ID_NOT_FOUND("", "Applicant Id not found", HttpStatus.EXPECTATION_FAILED),
+        ENTITY_NOT_FOUND("", "Entity not found", HttpStatus.EXPECTATION_FAILED);
 
         @Getter
         private String code;
@@ -34,7 +36,7 @@ public class EIDVCoreException extends RuntimeException {
         @Getter
         private HttpStatus httpStatus;
 
-        ExceptionCode(String message, String code, HttpStatus httpStatus) {
+        ExceptionCode(String code, String message, HttpStatus httpStatus) {
             this.code = code;
             this.message = message;
             this.httpStatus = httpStatus;

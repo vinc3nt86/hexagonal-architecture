@@ -12,8 +12,8 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 @Slf4j
 class GenerateSDKTokenUseCase implements UseCase<String, GenerateSDKTokenUseCase.Dto> {
-    private EIDVManagerPort eidvManagerPort;
-    private EIDVApplicantRepositoryPort eidvApplicantRepositoryPort;
+    private final EIDVManagerPort eidvManagerPort;
+    private final EIDVApplicantRepositoryPort eidvApplicantRepositoryPort;
 
     @Override
     public String execute(GenerateSDKTokenUseCase.Dto dto) {

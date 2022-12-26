@@ -12,4 +12,8 @@ public interface EIDVApplicantRepositoryPort {
     Optional<String> findSDKTokenByApplicantId(String applicantId);
 
     void updateSDKToken(String sdkToken, String applicantId);
+
+    void updateIdDocumentIdByApplicantId(String idDocumentId, String applicantId);
+
+    void updateLiveVideoIdByApplicantId(String liveVideoId, String applicantId);
 }

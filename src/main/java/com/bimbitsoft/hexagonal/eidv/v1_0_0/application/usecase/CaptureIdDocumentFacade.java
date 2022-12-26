@@ -1,7 +1,7 @@
 package com.bimbitsoft.hexagonal.eidv.v1_0_0.application.usecase;
 
 import com.bimbitsoft.hexagonal.eidv.v1_0_0.application.model.EIDVApplicant;
-import com.bimbitsoft.hexagonal.eidv.v1_0_0.application.model.EIDVDocument;
+import com.bimbitsoft.hexagonal.eidv.v1_0_0.application.model.IdDocument;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,27 +12,37 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 @Slf4j
 public class CaptureIdDocumentFacade extends UseCaseExtension<EIDVApplicant, CaptureIdDocumentFacade.Dto> {
-    private UpdateApplicantDocumentIdUseCase updateApplicantDocumentIdUseCase;
-    private DownloadDocumentBinaryDataUseCase downloadDocumentBinaryDataUseCase;
-    private UploadDocumentToBucketUseCase uploadDocumentToBucketUseCase;
+    private final UpdateApplicantDocumentUidUseCase updateApplicantDocumentUidUseCase;
+    private final GetEIDVDocumentUseCase getEIDVDocumentUseCase;
+    private final DownloadDocumentBinaryDataUseCase downloadDocumentBinaryDataUseCase;
+    private final UploadDocumentToBucketUseCase uploadDocumentToBucketUseCase;
 
     @Override
     public EIDVApplicant execute(Dto dto) {
         log.info("Executing {} use-case", this.getClass().getName());
 
-        EIDVApplicant eidvApplicant = updateApplicantDocumentIdInDB(dto);
-        String base64Image = downloadDocumentBinaryData(eidvApplicant.getApplicantId(), dto.getDocumentId());
-        uploadDocumentToBucket(eidvApplicant.getApplicantId(), dto.getChannelApplicationId(), base64Image);
+        String applicantId = updateApplicantDocumentIdInDB(dto);
+        String base64Image = downloadDocumentBinaryData(applicantId, dto.getIdDocumentUid());
+
+        //TODO: Should retrieve document object? It will contain file info like MimeType, issuing country (3 letter ISO) and filename
+        IdDocument idDocument = getEIDVDocumentUseCase.execute(dto.getIdDocumentUid());
+        idDocument.setBinaryData(IdDocument.decode(base64Image));
+
+        uploadDocumentToBucket(applicantId, dto.getChannelApplicationId(), idDocument);
+
+        EIDVApplicant eidvApplicant = new EIDVApplicant();
+        eidvApplicant.setApplicantId(applicantId);
+        eidvApplicant.setChannelApplicationId(dto.getChannelApplicationId());
+        eidvApplicant.setIdDocumentId(dto.getIdDocumentUid());
 
         return eidvApplicant;
     }
 
-    private void uploadDocumentToBucket(String applicantId, String channelApplicationId, String base64Image) {
+    private void uploadDocumentToBucket(String applicantId, String channelApplicationId, IdDocument idDocument) {
         uploadDocumentToBucketUseCase.execute(UploadDocumentToBucketUseCase.Dto.builder()
                 .applicantId(applicantId)
-                .base64String(base64Image)
                 .channelApplicationId(channelApplicationId)
-                .documentType(EIDVDocument.DocumentType.ID_DOCUMENT)
+                .idDocument(idDocument)
                 .build());
 
         updateApplicantStatus(applicantId, EIDVApplicant.EIDVStatus.ID_DOCUMENT_UPLOADED);
@@ -46,22 +56,22 @@ public class CaptureIdDocumentFacade extends UseCaseExtension<EIDVApplicant, Cap
         return base64String;
     }
 
-    private EIDVApplicant updateApplicantDocumentIdInDB(Dto dto) {
-        EIDVApplicant eidvApplicant = updateApplicantDocumentIdUseCase.execute(UpdateApplicantDocumentIdUseCase.Dto.builder()
+    private String updateApplicantDocumentIdInDB(Dto dto) {
+        String applicantId = updateApplicantDocumentUidUseCase.execute(UpdateApplicantDocumentUidUseCase.Dto.builder()
                 .channelApplicationId(dto.getChannelApplicationId())
-                .documentId(dto.getDocumentId())
-                .documentType(EIDVDocument.DocumentType.ID_DOCUMENT)
+                .documentUid(dto.getIdDocumentUid())
+                .documentType(IdDocument.DocumentType.ID_DOCUMENT)
                 .build());
 
-        updateApplicantStatus(eidvApplicant.getApplicantId(), EIDVApplicant.EIDVStatus.ID_DOCUMENT_ID_UPDATED);
+        updateApplicantStatus(applicantId, EIDVApplicant.EIDVStatus.ID_DOCUMENT_ID_UPDATED);
 
-        return eidvApplicant;
+        return applicantId;
     }
 
     @Getter
     @Builder
     public static class Dto {
         private final String channelApplicationId;
-        private final String documentId;
+        private final String idDocumentUid;
     }
 }

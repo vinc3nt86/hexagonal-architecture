@@ -1,7 +1,7 @@
 package com.bimbitsoft.hexagonal.eidv.v1_0_0.application.usecase;
 
 import com.bimbitsoft.hexagonal.eidv.v1_0_0.application.model.EIDVApplicant;
-import com.bimbitsoft.hexagonal.eidv.v1_0_0.application.model.EIDVDocument;
+import com.bimbitsoft.hexagonal.eidv.v1_0_0.application.model.IdDocument;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,39 +12,49 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 @Slf4j
 public class CaptureLiveVideoFacade extends UseCaseExtension<EIDVApplicant, CaptureLiveVideoFacade.Dto> {
-    private UpdateApplicantDocumentIdUseCase updateApplicantDocumentIdUseCase;
-    private DownloadDocumentBinaryDataUseCase downloadDocumentBinaryDataUseCase;
-    private UploadDocumentToBucketUseCase uploadDocumentToBucketUseCase;
+    private final UpdateApplicantDocumentUidUseCase updateApplicantDocumentUidUseCase;
+    private final GetEIDVDocumentUseCase getEIDVDocumentUseCase;
+    private final DownloadDocumentBinaryDataUseCase downloadDocumentBinaryDataUseCase;
+    private final UploadDocumentToBucketUseCase uploadDocumentToBucketUseCase;
 
     @Override
     public EIDVApplicant execute(CaptureLiveVideoFacade.Dto dto) {
         log.info("Executing {} use-case", this.getClass().getName());
 
-        EIDVApplicant eidvApplicant = updateApplicantDocumentIdInDB(dto);
-        String base64Image = downloadDocumentBinaryData(eidvApplicant.getApplicantId(), dto.getLiveVideoId());
-        uploadDocumentToBucket(eidvApplicant.getApplicantId(), dto.getChannelApplicationId(), base64Image);
+        String applicantId = updateApplicantDocumentIdInDB(dto);
+        String base64Image = downloadDocumentBinaryData(applicantId, dto.getLiveVideoUid());
 
-        return null;
-    }
+        //TODO: Should retrieve document object? It will contain file info like MimeType, issuing country (3 letter ISO) and filename
+        IdDocument idDocument = getEIDVDocumentUseCase.execute(dto.getLiveVideoUid());
+        idDocument.setBinaryData(IdDocument.decode(base64Image));
 
-    private EIDVApplicant updateApplicantDocumentIdInDB(CaptureLiveVideoFacade.Dto dto) {
-        EIDVApplicant eidvApplicant = updateApplicantDocumentIdUseCase.execute(UpdateApplicantDocumentIdUseCase.Dto.builder()
-                .channelApplicationId(dto.getChannelApplicationId())
-                .documentId(dto.getLiveVideoId())
-                .documentType(EIDVDocument.DocumentType.ID_DOCUMENT)
-                .build());
+        uploadDocumentToBucket(applicantId, dto.getChannelApplicationId(), idDocument);
 
-        updateApplicantStatus(eidvApplicant.getApplicantId(), EIDVApplicant.EIDVStatus.LIVE_VIDEO_ID_UPDATED);
+        EIDVApplicant eidvApplicant = new EIDVApplicant();
+        eidvApplicant.setApplicantId(applicantId);
+        eidvApplicant.setChannelApplicationId(dto.getChannelApplicationId());
+        eidvApplicant.setIdDocumentId(dto.getLiveVideoUid());
 
         return eidvApplicant;
     }
 
-    private void uploadDocumentToBucket(String applicantId, String channelApplicationId, String base64Image) {
+    private String updateApplicantDocumentIdInDB(CaptureLiveVideoFacade.Dto dto) {
+        String applicantId = updateApplicantDocumentUidUseCase.execute(UpdateApplicantDocumentUidUseCase.Dto.builder()
+                .channelApplicationId(dto.getChannelApplicationId())
+                .documentUid(dto.getLiveVideoUid())
+                .documentType(IdDocument.DocumentType.LIVE_VIDEO)
+                .build());
+
+        updateApplicantStatus(applicantId, EIDVApplicant.EIDVStatus.LIVE_VIDEO_ID_UPDATED);
+
+        return applicantId;
+    }
+
+    private void uploadDocumentToBucket(String applicantId, String channelApplicationId, IdDocument idDocument) {
         uploadDocumentToBucketUseCase.execute(UploadDocumentToBucketUseCase.Dto.builder()
                 .applicantId(applicantId)
-                .base64String(base64Image)
                 .channelApplicationId(channelApplicationId)
-                .documentType(EIDVDocument.DocumentType.LIVE_VIDEO)
+                .idDocument(idDocument)
                 .build());
 
         updateApplicantStatus(applicantId, EIDVApplicant.EIDVStatus.LIVE_VIDEO_UPLOADED);
@@ -62,6 +72,6 @@ public class CaptureLiveVideoFacade extends UseCaseExtension<EIDVApplicant, Capt
     @Builder
     public static class Dto {
         private final String channelApplicationId;
-        private final String liveVideoId;
+        private final String liveVideoUid;
     }
 }

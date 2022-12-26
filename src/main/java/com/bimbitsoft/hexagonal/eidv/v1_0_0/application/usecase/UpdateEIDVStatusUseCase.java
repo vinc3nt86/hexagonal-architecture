@@ -13,8 +13,8 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 @Slf4j
 class UpdateEIDVStatusUseCase implements UseCase<String, UpdateEIDVStatusUseCase.Dto> {
-    private EIDVApplicantRepositoryPort eidvApplicantRepositoryPort;
-    private EIDVAuditRepository eidvAuditRepository;
+    private final EIDVApplicantRepositoryPort eidvApplicantRepositoryPort;
+    private final EIDVAuditRepository eidvAuditRepository;
 
     @Override
     public String execute(UpdateEIDVStatusUseCase.Dto updateEIDVStatusDto) {

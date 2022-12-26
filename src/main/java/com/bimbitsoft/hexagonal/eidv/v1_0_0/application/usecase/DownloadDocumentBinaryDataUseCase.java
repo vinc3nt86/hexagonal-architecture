@@ -13,19 +13,19 @@ import java.util.Base64;
 @AllArgsConstructor
 @Slf4j
 class DownloadDocumentBinaryDataUseCase implements UseCase<String, DownloadDocumentBinaryDataUseCase.Dto> {
-    private EIDVManagerPort eidvManagerPort;
+    private final EIDVManagerPort eidvManagerPort;
 
     @Override
     public String execute(Dto dto) {
         log.info("Executing {} use-case", this.getClass().getName());
 
-        byte[] binaryData = eidvManagerPort.downloadDocumentBinaryData(dto.getDocumentId());
+        byte[] binaryData = eidvManagerPort.downloadDocumentBinaryData(dto.getDocumentUid());
         return Base64.getEncoder().encodeToString(binaryData);
     }
 
     @Getter
     @Builder
     static class Dto {
-        private final String documentId;
+        private final String documentUid;
     }
 }
